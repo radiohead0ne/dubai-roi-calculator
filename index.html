@@ -3,211 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dubai Real Estate ROI Calculator - Line Dubai</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>Dubai Real Estate ROI Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { margin: 0; padding: 0; }
-    </style>
 </head>
-<body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useMemo } = React;
+<body class="bg-slate-900">
+    <div id="app"></div>
+    <script>
+        const app = document.getElementById('app');
         
-        const DollarSign = () => (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="1" x2="12" y2="23"></line>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
-        );
+        const state = {
+            usdToAed: 3.6725,
+            purchasePriceUSD: 204000,
+            dldFeePercent: 4,
+            adminFeeAED: 4000,
+            propertySizeSqft: 800,
+            serviceChargePerSqftAED: 15,
+            occupancyRate: 90,
+            completionYear: 2026,
+            completionQuarter: 'Q2',
+            downPaymentPercent: 20,
+            duringConstructionPercent: 30,
+            onHandoverPercent: 50,
+            hasPHPP: false,
+            phppPercent: 0,
+            phppMonths: 24,
+            hasMortgage: false,
+            mortgageRate: 3.89,
+            mortgageYears: 25,
+            mortgagePercent: 50,
+            annualRentUSD: 14000,
+            annualRentIncrease: 10,
+            holdingPeriodYears: 10
+        };
         
-        const Home = () => (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-        );
+        const convertToAED = (usd) => usd * state.usdToAed;
+        const convertToUSD = (aed) => aed / state.usdToAed;
+        const formatUSD = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(v);
+        const formatAED = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED', minimumFractionDigits: 0 }).format(v);
+        const formatNumber = (v) => new Intl.NumberFormat('en-US').format(v);
         
-        const PieChart = () => (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
-                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
-            </svg>
-        );
-        
-        const TrendingUp = () => (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-        );
-        
-        const Calculator = () => (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="4" y="2" width="16" height="20" rx="2"></rect>
-                <line x1="8" y1="6" x2="16" y2="6"></line>
-            </svg>
-        );
-
-        const DubaiROICalculator = () => {
-            const USD_TO_AED = 3.6725;
-            const convertToAED = (usd) => usd * USD_TO_AED;
-            const convertToUSD = (aed) => aed / USD_TO_AED;
+        function calculate() {
+            const purchasePriceAED = convertToAED(state.purchasePriceUSD);
+            const propertySizeM2 = state.propertySizeSqft / 10.764;
+            const dldFeeAED = purchasePriceAED * (state.dldFeePercent / 100);
+            const dldFeeUSD = convertToUSD(dldFeeAED);
+            const adminFeeUSD = convertToUSD(state.adminFeeAED);
+            const annualServiceChargeAED = state.serviceChargePerSqftAED * state.propertySizeSqft;
+            const annualServiceChargeUSD = convertToUSD(annualServiceChargeAED);
+            const downPaymentAED = purchasePriceAED * (state.downPaymentPercent / 100);
+            const downPaymentUSD = state.purchasePriceUSD * (state.downPaymentPercent / 100);
+            const duringConstructionAED = purchasePriceAED * (state.duringConstructionPercent / 100);
+            const duringConstructionUSD = state.purchasePriceUSD * (state.duringConstructionPercent / 100);
+            const onHandoverAED = purchasePriceAED * (state.onHandoverPercent / 100);
+            const onHandoverUSD = state.purchasePriceUSD * (state.onHandoverPercent / 100);
+            const phppAED = state.hasPHPP ? purchasePriceAED * (state.phppPercent / 100) : 0;
+            const phppUSD = state.hasPHPP ? state.purchasePriceUSD * (state.phppPercent / 100) : 0;
+            const phppMonthlyUSD = state.hasPHPP && state.phppMonths > 0 ? phppUSD / state.phppMonths : 0;
+            const initialFeesAED = downPaymentAED + dldFeeAED + state.adminFeeAED;
+            const initialFeesUSD = convertToUSD(initialFeesAED);
             
-            const [purchasePriceUSD, setPurchasePriceUSD] = useState(204000);
-            const [dldFeePercent, setDldFeePercent] = useState(4);
-            const [adminFeeAED, setAdminFeeAED] = useState(4000);
-            const [propertySizeSqft, setPropertySizeSqft] = useState(800);
-            const [serviceChargePerSqftAED, setServiceChargePerSqftAED] = useState(15);
-            const [occupancyRate, setOccupancyRate] = useState(90);
-            const [completionYear, setCompletionYear] = useState(2026);
-            const [completionQuarter, setCompletionQuarter] = useState('Q2');
-            const [downPaymentPercent, setDownPaymentPercent] = useState(20);
-            const [duringConstructionPercent, setDuringConstructionPercent] = useState(30);
-            const [onHandoverPercent, setOnHandoverPercent] = useState(50);
-            const [hasPHPP, setHasPHPP] = useState(false);
-            const [phppPercent, setPhppPercent] = useState(0);
-            const [phppMonths, setPhppMonths] = useState(24);
-            const [hasMortgage, setHasMortgage] = useState(false);
-            const [mortgageRate, setMortgageRate] = useState(3.89);
-            const [mortgageYears, setMortgageYears] = useState(25);
-            const [mortgagePercent, setMortgagePercent] = useState(50);
-            const [annualRentUSD, setAnnualRentUSD] = useState(14000);
-            const [annualRentIncrease, setAnnualRentIncrease] = useState(10);
-            const [holdingPeriodYears, setHoldingPeriodYears] = useState(10);
+            let mortgageAmountAED = 0, mortgageAmountUSD = 0, monthlyMortgageAED = 0, monthlyMortgageUSD = 0;
+            let totalMortgagePaidAED = 0, totalMortgagePaidUSD = 0;
             
+            if (state.hasMortgage) {
+                mortgageAmountAED = purchasePriceAED * (state.mortgagePercent / 100);
+                mortgageAmountUSD = state.purchasePriceUSD * (state.mortgagePercent / 100);
+                const monthlyRate = state.mortgageRate / 100 / 12;
+                const totalNumPayments = state.mortgageYears * 12;
+                if (monthlyRate > 0) {
+                    monthlyMortgageAED = mortgageAmountAED * (monthlyRate * Math.pow(1 + monthlyRate, totalNumPayments)) / (Math.pow(1 + monthlyRate, totalNumPayments) - 1);
+                    monthlyMortgageUSD = convertToUSD(monthlyMortgageAED);
+                    totalMortgagePaidAED = monthlyMortgageAED * state.holdingPeriodYears * 12;
+                    totalMortgagePaidUSD = convertToUSD(totalMortgagePaidAED);
+                }
+            }
+            
+            const actualCashInvestedAED = initialFeesAED + duringConstructionAED + (state.hasPHPP ? phppAED : 0) + (state.hasMortgage ? onHandoverAED - mortgageAmountAED : onHandoverAED);
+            const actualCashInvestedUSD = convertToUSD(actualCashInvestedAED);
+            
+            let totalRentalIncomeAED = 0;
+            let currentRentAED = convertToAED(state.annualRentUSD) * (state.occupancyRate / 100);
+            for (let year = 1; year <= state.holdingPeriodYears; year++) {
+                const annualMortgageThisYear = state.hasMortgage ? monthlyMortgageAED * 12 : 0;
+                const netIncomeThisYear = currentRentAED - annualServiceChargeAED - annualMortgageThisYear;
+                totalRentalIncomeAED += netIncomeThisYear;
+                currentRentAED = currentRentAED * (1 + state.annualRentIncrease / 100);
+            }
+            
+            const totalRentalIncomeUSD = convertToUSD(totalRentalIncomeAED);
+            const effectiveAnnualRentAED = convertToAED(state.annualRentUSD) * (state.occupancyRate / 100);
+            const effectiveAnnualRentUSD = convertToUSD(effectiveAnnualRentAED);
+            const annualMortgagePaymentAED = state.hasMortgage ? monthlyMortgageAED * 12 : 0;
+            const annualMortgagePaymentUSD = convertToUSD(annualMortgagePaymentAED);
+            const netAnnualIncomeAED = effectiveAnnualRentAED - annualServiceChargeAED - annualMortgagePaymentAED;
+            const netAnnualIncomeUSD = convertToUSD(netAnnualIncomeAED);
+            const netMonthlyIncomeUSD = netAnnualIncomeUSD / 12;
+            const grossRentalYieldAnnual = (effectiveAnnualRentAED / purchasePriceAED) * 100;
+            const grossRentalYieldMonthly = grossRentalYieldAnnual / 12;
+            const netRentalYieldAnnual = (netAnnualIncomeAED / purchasePriceAED) * 100;
+            const netRentalYieldMonthly = netRentalYieldAnnual / 12;
+            const futureValueAED = purchasePriceAED * Math.pow(1 + state.annualRentIncrease / 100, state.holdingPeriodYears);
+            const futureValueUSD = convertToUSD(futureValueAED);
+            const capitalGainAED = futureValueAED - purchasePriceAED;
+            const capitalGainUSD = convertToUSD(capitalGainAED);
+            const totalReturnAED = capitalGainAED + totalRentalIncomeAED;
+            const totalReturnUSD = convertToUSD(totalReturnAED);
+            const totalROI = (totalReturnAED / actualCashInvestedAED) * 100;
+            const paybackPeriodYears = actualCashInvestedAED / (netAnnualIncomeAED > 0 ? netAnnualIncomeAED : 1);
+            
+            return {
+                purchasePriceAED, dldFeeAED, dldFeeUSD, adminFeeUSD, annualServiceChargeUSD, propertySizeM2,
+                downPaymentUSD, duringConstructionUSD, onHandoverUSD, phppUSD, phppMonthlyUSD, initialFeesUSD,
+                mortgageAmountUSD, monthlyMortgageUSD, totalMortgagePaidUSD, annualMortgagePaymentUSD,
+                actualCashInvestedUSD, effectiveAnnualRentUSD, netAnnualIncomeUSD, netMonthlyIncomeUSD,
+                grossRentalYieldAnnual, grossRentalYieldMonthly, netRentalYieldAnnual, netRentalYieldMonthly,
+                futureValueUSD, capitalGainUSD, totalRentalIncomeUSD, totalReturnUSD, totalROI, paybackPeriodYears
+            };
+        }
+        
+        function render() {
+            const calc = calculate();
             const currentDate = new Date();
             const investmentDate = `${currentDate.getFullYear()} Q${Math.ceil((currentDate.getMonth() + 1) / 3)}`;
             
-            const calculations = useMemo(() => {
-                const purchasePriceAED = convertToAED(purchasePriceUSD);
-                const propertySizeM2 = propertySizeSqft / 10.764;
-                const dldFeeAED = purchasePriceAED * (dldFeePercent / 100);
-                const dldFeeUSD = convertToUSD(dldFeeAED);
-                const adminFeeUSD = convertToUSD(adminFeeAED);
-                const annualServiceChargeAED = serviceChargePerSqftAED * propertySizeSqft;
-                const annualServiceChargeUSD = convertToUSD(annualServiceChargeAED);
-                const downPaymentAED = purchasePriceAED * (downPaymentPercent / 100);
-                const downPaymentUSD = purchasePriceUSD * (downPaymentPercent / 100);
-                const duringConstructionAED = purchasePriceAED * (duringConstructionPercent / 100);
-                const duringConstructionUSD = purchasePriceUSD * (duringConstructionPercent / 100);
-                const onHandoverAED = purchasePriceAED * (onHandoverPercent / 100);
-                const onHandoverUSD = purchasePriceUSD * (onHandoverPercent / 100);
-                const phppAED = hasPHPP ? purchasePriceAED * (phppPercent / 100) : 0;
-                const phppUSD = hasPHPP ? purchasePriceUSD * (phppPercent / 100) : 0;
-                const phppMonthlyAED = hasPHPP && phppMonths > 0 ? phppAED / phppMonths : 0;
-                const phppMonthlyUSD = hasPHPP && phppMonths > 0 ? phppUSD / phppMonths : 0;
-                const initialFeesAED = downPaymentAED + dldFeeAED + adminFeeAED;
-                const initialFeesUSD = convertToUSD(initialFeesAED);
-                
-                let mortgageAmountAED = 0, mortgageAmountUSD = 0, monthlyMortgageAED = 0;
-                let monthlyMortgageUSD = 0, totalMortgagePaidAED = 0, totalMortgagePaidUSD = 0;
-                
-                if (hasMortgage) {
-                    mortgageAmountAED = purchasePriceAED * (mortgagePercent / 100);
-                    mortgageAmountUSD = purchasePriceUSD * (mortgagePercent / 100);
-                    const monthlyRate = mortgageRate / 100 / 12;
-                    const totalNumPayments = mortgageYears * 12;
-                    if (monthlyRate > 0) {
-                        monthlyMortgageAED = mortgageAmountAED * (monthlyRate * Math.pow(1 + monthlyRate, totalNumPayments)) / (Math.pow(1 + monthlyRate, totalNumPayments) - 1);
-                        monthlyMortgageUSD = convertToUSD(monthlyMortgageAED);
-                        const holdingPeriodMonths = holdingPeriodYears * 12;
-                        totalMortgagePaidAED = monthlyMortgageAED * holdingPeriodMonths;
-                        totalMortgagePaidUSD = convertToUSD(totalMortgagePaidAED);
-                    }
-                }
-                
-                const actualCashInvestedAED = initialFeesAED + duringConstructionAED + (hasPHPP ? phppAED : 0) + (hasMortgage ? onHandoverAED - mortgageAmountAED : onHandoverAED);
-                const actualCashInvestedUSD = convertToUSD(actualCashInvestedAED);
-                
-                let totalRentalIncomeAED = 0;
-                let currentRentAED = convertToAED(annualRentUSD) * (occupancyRate / 100);
-                for (let year = 1; year <= holdingPeriodYears; year++) {
-                    const annualMortgageThisYear = hasMortgage ? monthlyMortgageAED * 12 : 0;
-                    const netIncomeThisYear = currentRentAED - annualServiceChargeAED - annualMortgageThisYear;
-                    totalRentalIncomeAED += netIncomeThisYear;
-                    currentRentAED = currentRentAED * (1 + annualRentIncrease / 100);
-                }
-                const totalRentalIncomeUSD = convertToUSD(totalRentalIncomeAED);
-                const effectiveAnnualRentAED = convertToAED(annualRentUSD) * (occupancyRate / 100);
-                const effectiveAnnualRentUSD = convertToUSD(effectiveAnnualRentAED);
-                const annualMortgagePaymentAED = hasMortgage ? monthlyMortgageAED * 12 : 0;
-                const annualMortgagePaymentUSD = convertToUSD(annualMortgagePaymentAED);
-                const netAnnualIncomeAED = effectiveAnnualRentAED - annualServiceChargeAED - annualMortgagePaymentAED;
-                const netAnnualIncomeUSD = convertToUSD(netAnnualIncomeAED);
-                const netMonthlyIncomeUSD = netAnnualIncomeUSD / 12;
-                const grossRentalYieldAnnual = (effectiveAnnualRentAED / purchasePriceAED) * 100;
-                const grossRentalYieldMonthly = grossRentalYieldAnnual / 12;
-                const netRentalYieldAnnual = (netAnnualIncomeAED / purchasePriceAED) * 100;
-                const netRentalYieldMonthly = netRentalYieldAnnual / 12;
-                const futureValueAED = purchasePriceAED * Math.pow(1 + annualRentIncrease / 100, holdingPeriodYears);
-                const futureValueUSD = convertToUSD(futureValueAED);
-                const capitalGainAED = futureValueAED - purchasePriceAED;
-                const capitalGainUSD = convertToUSD(capitalGainAED);
-                const totalReturnAED = capitalGainAED + totalRentalIncomeAED;
-                const totalReturnUSD = convertToUSD(totalReturnAED);
-                const totalROI = (totalReturnAED / actualCashInvestedAED) * 100;
-                const paybackPeriodYears = actualCashInvestedAED / (netAnnualIncomeAED > 0 ? netAnnualIncomeAED : 1);
-                
-                return {
-                    purchasePriceAED, dldFeeAED, dldFeeUSD, adminFeeUSD, annualServiceChargeAED, annualServiceChargeUSD,
-                    downPaymentAED, downPaymentUSD, duringConstructionAED, duringConstructionUSD, onHandoverAED, onHandoverUSD,
-                    phppAED, phppUSD, phppMonthlyAED, phppMonthlyUSD, initialFeesAED, initialFeesUSD,
-                    mortgageAmountAED, mortgageAmountUSD, monthlyMortgageAED, monthlyMortgageUSD,
-                    totalMortgagePaidAED, totalMortgagePaidUSD, annualMortgagePaymentAED, annualMortgagePaymentUSD,
-                    actualCashInvestedAED, actualCashInvestedUSD, effectiveAnnualRentAED, effectiveAnnualRentUSD,
-                    netAnnualIncomeAED, netAnnualIncomeUSD, netMonthlyIncomeUSD,
-                    grossRentalYieldAnnual, grossRentalYieldMonthly, netRentalYieldAnnual, netRentalYieldMonthly,
-                    futureValueAED, futureValueUSD, capitalGainAED, capitalGainUSD, totalRentalIncomeAED, totalRentalIncomeUSD,
-                    totalReturnAED, totalReturnUSD, totalROI, paybackPeriodYears, propertySizeSqft, propertySizeM2
-                };
-            }, [purchasePriceUSD, dldFeePercent, adminFeeAED, propertySizeSqft, serviceChargePerSqftAED, occupancyRate,
-                downPaymentPercent, duringConstructionPercent, onHandoverPercent, hasPHPP, phppPercent, phppMonths,
-                hasMortgage, mortgageRate, mortgageYears, mortgagePercent, annualRentUSD, annualRentIncrease, holdingPeriodYears]);
+            app.innerHTML = `
+                <div class="w-full min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-2">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg shadow-lg p-2 mb-3">
+                            <h1 class="text-xl font-bold text-white">Dubai Real Estate ROI Calculator</h1>
+                        </div>
+                        
+                        <div class="grid lg:grid-cols-5 gap-3">
+                            <div class="lg:col-span-3 space-y-2">
+                                ${renderInputSection('Purchase Details', [
+                                    { label: 'Price (USD)', value: state.purchasePriceUSD, key: 'purchasePriceUSD', type: 'number' },
+                                    { label: 'DLD (%)', value: state.dldFeePercent, key: 'dldFeePercent', type: 'number', step: '0.1' },
+                                    { label: 'Admin Fee (AED)', value: state.adminFeeAED, key: 'adminFeeAED', type: 'number' }
+                                ])}
+                                
+                                ${renderInputSection('Property Details', [
+                                    { label: 'Size (sqft)', value: state.propertySizeSqft, key: 'propertySizeSqft', type: 'number' },
+                                    { label: 'Service (AED/sqft)', value: state.serviceChargePerSqftAED, key: 'serviceChargePerSqftAED', type: 'number' },
+                                    { label: 'Occupancy (%)', value: state.occupancyRate, key: 'occupancyRate', type: 'number' }
+                                ])}
+                                
+                                ${renderInputSection('Rental Income', [
+                                    { label: 'Annual Rent (USD)', value: state.annualRentUSD, key: 'annualRentUSD', type: 'number' },
+                                    { label: 'Rent Increase (%)', value: state.annualRentIncrease, key: 'annualRentIncrease', type: 'number', step: '0.1' },
+                                    { label: 'Holding Period (Yrs)', value: state.holdingPeriodYears, key: 'holdingPeriodYears', type: 'number' }
+                                ])}
+                            </div>
+                            
+                            <div class="lg:col-span-2 space-y-2">
+                                <div class="bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg shadow-lg p-3 text-white">
+                                    <h2 class="text-sm font-bold mb-2">Return on Investment</h2>
+                                    <div class="bg-white/20 p-3 rounded">
+                                        <p class="text-xs mb-1">Total ROI (${state.holdingPeriodYears} Years)</p>
+                                        <p class="text-4xl font-bold">${calc.totalROI.toFixed(1)}%</p>
+                                    </div>
+                                    <div class="mt-2 text-xs space-y-1">
+                                        <div class="flex justify-between"><span>Investment:</span><span class="font-bold">${formatUSD(calc.actualCashInvestedUSD)}</span></div>
+                                        <div class="flex justify-between"><span>Total Return:</span><span class="font-bold">${formatUSD(calc.totalReturnUSD)}</span></div>
+                                        <div class="flex justify-between"><span>Capital Gain:</span><span class="font-bold">${formatUSD(calc.capitalGainUSD)}</span></div>
+                                        <div class="flex justify-between"><span>Rental Income:</span><span class="font-bold">${formatUSD(calc.totalRentalIncomeUSD)}</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2">Rental Yields</h2>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="bg-blue-500/10 border border-blue-500/30 rounded p-2">
+                                            <p class="text-xs text-slate-300">Gross (Annual)</p>
+                                            <p class="text-lg font-bold text-blue-400">${calc.grossRentalYieldAnnual.toFixed(2)}%</p>
+                                        </div>
+                                        <div class="bg-green-500/10 border border-green-500/30 rounded p-2">
+                                            <p class="text-xs text-slate-300">Net (Annual)</p>
+                                            <p class="text-lg font-bold text-green-400">${calc.netRentalYieldAnnual.toFixed(2)}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
             
-            const formatUSD = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
-            const formatAED = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
-            const formatNumber = (v) => new Intl.NumberFormat('en-US').format(v);
-
-            return React.createElement('div', { className: "w-full min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-2" },
-                React.createElement('div', { className: "max-w-7xl mx-auto" },
-                    React.createElement('div', { className: "bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg shadow-lg p-2 mb-3" },
-                        React.createElement('h1', { className: "text-xl font-bold text-white" }, "Dubai Real Estate ROI Calculator")
-                    ),
-                    React.createElement('div', { className: "bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg shadow-lg p-4 text-white text-center" },
-                        React.createElement('h2', { className: "text-lg font-bold mb-2" }, "Return on Investment"),
-                        React.createElement('div', { className: "bg-white/20 p-4 rounded" },
-                            React.createElement('p', { className: "text-sm mb-1" }, `Total ROI (${holdingPeriodYears} Years)`),
-                            React.createElement('p', { className: "text-5xl font-bold" }, `${calculations.totalROI.toFixed(1)}%`)
-                        ),
-                        React.createElement('div', { className: "mt-3 text-sm space-y-1" },
-                            React.createElement('div', { className: "flex justify-between" },
-                                React.createElement('span', null, "Total Investment:"),
-                                React.createElement('span', { className: "font-bold" }, formatUSD(calculations.actualCashInvestedUSD))
-                            ),
-                            React.createElement('div', { className: "flex justify-between" },
-                                React.createElement('span', null, "Total Return:"),
-                                React.createElement('span', { className: "font-bold" }, formatUSD(calculations.totalReturnUSD))
-                            ),
-                            React.createElement('div', { className: "flex justify-between" },
-                                React.createElement('span', null, "Capital Gain:"),
-                                React.createElement('span', { className: "font-bold" }, formatUSD(calculations.capitalGainUSD))
-                            ),
-                            React.createElement('div', { className: "flex justify-between" },
-                                React.createElement('span', null, "Rental Income:"),
-                                React.createElement('span', { className: "font-bold" }, formatUSD(calculations.totalRentalIncomeUSD))
-                            )
-                        )
-                    )
-                )
-            );
-        };
-
-        ReactDOM.render(React.createElement(DubaiROICalculator), document.getElementById('root'));
+            // Add event listeners
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const key = e.target.dataset.key;
+                    state[key] = e.target.type === 'checkbox' ? e.target.checked : Number(e.target.value.replace(/,/g, ''));
+                    render();
+                });
+            });
+        }
+        
+        function renderInputSection(title, inputs) {
+            return `
+                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                    <h2 class="text-sm font-bold text-white mb-2">${title}</h2>
+                    <div class="grid grid-cols-3 gap-2">
+                        ${inputs.map(input => `
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">${input.label}</label>
+                                <input 
+                                    type="${input.type}" 
+                                    value="${input.value}" 
+                                    data-key="${input.key}"
+                                    ${input.step ? `step="${input.step}"` : ''}
+                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500"
+                                />
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        render();
     </script>
 </body>
 </html>
