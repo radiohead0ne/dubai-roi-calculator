@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dubai Real Estate ROI Calculator</title>
+    <title>Dubai Real Estate ROI Calculator - Line Dubai</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
 </head>
-<body class="bg-slate-900">
+<body>
     <div id="app"></div>
+    
     <script>
-        const app = document.getElementById('app');
-        
         const state = {
             usdToAed: 3.6725,
             purchasePriceUSD: 204000,
@@ -38,8 +43,8 @@
         
         const convertToAED = (usd) => usd * state.usdToAed;
         const convertToUSD = (aed) => aed / state.usdToAed;
-        const formatUSD = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(v);
-        const formatAED = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED', minimumFractionDigits: 0 }).format(v);
+        const formatUSD = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+        const formatAED = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
         const formatNumber = (v) => new Intl.NumberFormat('en-US').format(v);
         
         function calculate() {
@@ -121,12 +126,21 @@
             };
         }
         
+        function updateValue(key, value) {
+            if (key === 'hasPHPP' || key === 'hasMortgage') {
+                state[key] = value;
+            } else {
+                state[key] = Number(String(value).replace(/,/g, ''));
+            }
+            render();
+        }
+        
         function render() {
             const calc = calculate();
             const currentDate = new Date();
             const investmentDate = `${currentDate.getFullYear()} Q${Math.ceil((currentDate.getMonth() + 1) / 3)}`;
             
-            app.innerHTML = `
+            document.getElementById('app').innerHTML = `
                 <div class="w-full min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-2">
                     <div class="max-w-7xl mx-auto">
                         <div class="bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg shadow-lg p-2 mb-3">
@@ -134,53 +148,380 @@
                         </div>
                         
                         <div class="grid lg:grid-cols-5 gap-3">
+                            <!-- Left Panel - Inputs -->
                             <div class="lg:col-span-3 space-y-2">
-                                ${renderInputSection('Purchase Details', [
-                                    { label: 'Price (USD)', value: state.purchasePriceUSD, key: 'purchasePriceUSD', type: 'number' },
-                                    { label: 'DLD (%)', value: state.dldFeePercent, key: 'dldFeePercent', type: 'number', step: '0.1' },
-                                    { label: 'Admin Fee (AED)', value: state.adminFeeAED, key: 'adminFeeAED', type: 'number' }
-                                ])}
                                 
-                                ${renderInputSection('Property Details', [
-                                    { label: 'Size (sqft)', value: state.propertySizeSqft, key: 'propertySizeSqft', type: 'number' },
-                                    { label: 'Service (AED/sqft)', value: state.serviceChargePerSqftAED, key: 'serviceChargePerSqftAED', type: 'number' },
-                                    { label: 'Occupancy (%)', value: state.occupancyRate, key: 'occupancyRate', type: 'number' }
-                                ])}
-                                
-                                ${renderInputSection('Rental Income', [
-                                    { label: 'Annual Rent (USD)', value: state.annualRentUSD, key: 'annualRentUSD', type: 'number' },
-                                    { label: 'Rent Increase (%)', value: state.annualRentIncrease, key: 'annualRentIncrease', type: 'number', step: '0.1' },
-                                    { label: 'Holding Period (Yrs)', value: state.holdingPeriodYears, key: 'holdingPeriodYears', type: 'number' }
-                                ])}
-                            </div>
-                            
-                            <div class="lg:col-span-2 space-y-2">
-                                <div class="bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg shadow-lg p-3 text-white">
-                                    <h2 class="text-sm font-bold mb-2">Return on Investment</h2>
-                                    <div class="bg-white/20 p-3 rounded">
-                                        <p class="text-xs mb-1">Total ROI (${state.holdingPeriodYears} Years)</p>
-                                        <p class="text-4xl font-bold">${calc.totalROI.toFixed(1)}%</p>
-                                    </div>
-                                    <div class="mt-2 text-xs space-y-1">
-                                        <div class="flex justify-between"><span>Investment:</span><span class="font-bold">${formatUSD(calc.actualCashInvestedUSD)}</span></div>
-                                        <div class="flex justify-between"><span>Total Return:</span><span class="font-bold">${formatUSD(calc.totalReturnUSD)}</span></div>
-                                        <div class="flex justify-between"><span>Capital Gain:</span><span class="font-bold">${formatUSD(calc.capitalGainUSD)}</span></div>
-                                        <div class="flex justify-between"><span>Rental Income:</span><span class="font-bold">${formatUSD(calc.totalRentalIncomeUSD)}</span></div>
+                                <!-- Purchase Details -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2 flex items-center gap-1">
+                                        💲 Purchase Details
+                                    </h2>
+                                    <div class="space-y-2">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">Price (USD)</label>
+                                                <input type="text" value="${formatNumber(state.purchasePriceUSD)}" data-key="purchasePriceUSD"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">Price (AED)</label>
+                                                <input type="text" value="${formatNumber(Math.round(calc.purchasePriceAED))}" data-key="purchasePriceAED"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500">
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">DLD (%)</label>
+                                                <input type="number" step="0.1" value="${state.dldFeePercent}" data-key="dldFeePercent"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500">
+                                            </div>
+                                            <div class="col-span-2 flex items-end">
+                                                <p class="text-xs text-amber-400 font-semibold">${formatUSD(calc.dldFeeUSD)} / ${formatAED(calc.dldFeeAED)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">Admin Fee (USD)</label>
+                                                <input type="text" value="${formatNumber(Math.round(convertToUSD(state.adminFeeAED)))}" data-key="adminFeeUSD"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">Admin Fee (AED)</label>
+                                                <input type="text" value="${formatNumber(Math.round(state.adminFeeAED))}" data-key="adminFeeAED"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
+                                <!-- Property Details -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2 flex items-center gap-1">
+                                        🏠 Property Details
+                                    </h2>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Size (sqft)</label>
+                                            <input type="number" value="${state.propertySizeSqft}" data-key="propertySizeSqft"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-blue-500">
+                                            <p class="text-xs text-slate-400">${calc.propertySizeM2.toFixed(1)} m²</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Service (AED/sqft)</label>
+                                            <input type="number" value="${state.serviceChargePerSqftAED}" data-key="serviceChargePerSqftAED"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Occupancy (%)</label>
+                                            <input type="number" value="${state.occupancyRate}" data-key="occupancyRate"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-blue-400 mb-1">Annual Cost:</p>
+                                            <p class="text-xs text-white font-semibold">${formatUSD(calc.annualServiceChargeUSD)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Timeline -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2">Timeline</h2>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Investment</label>
+                                            <div class="px-2 py-1 text-xs bg-slate-700/50 border border-slate-600 rounded text-white">${investmentDate}</div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Completion Yr</label>
+                                            <input type="number" value="${state.completionYear}" data-key="completionYear"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-purple-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Quarter</label>
+                                            <select data-key="completionQuarter" class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-purple-500">
+                                                <option value="Q1" ${state.completionQuarter === 'Q1' ? 'selected' : ''}>Q1</option>
+                                                <option value="Q2" ${state.completionQuarter === 'Q2' ? 'selected' : ''}>Q2</option>
+                                                <option value="Q3" ${state.completionQuarter === 'Q3' ? 'selected' : ''}>Q3</option>
+                                                <option value="Q4" ${state.completionQuarter === 'Q4' ? 'selected' : ''}>Q4</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Holding (Yrs)</label>
+                                            <input type="number" value="${state.holdingPeriodYears}" data-key="holdingPeriodYears"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-purple-500">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payment Plan -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2 flex items-center gap-1">
+                                        📊 Payment Plan
+                                    </h2>
+                                    <div class="space-y-2">
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">Down Payment</label>
+                                                <input type="number" value="${state.downPaymentPercent}" data-key="downPaymentPercent"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-green-500">
+                                                <p class="text-xs text-green-400">${formatUSD(calc.downPaymentUSD)}</p>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">During Const.</label>
+                                                <input type="number" value="${state.duringConstructionPercent}" data-key="duringConstructionPercent"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-green-500">
+                                                <p class="text-xs text-green-400">${formatUSD(calc.duringConstructionUSD)}</p>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs text-slate-300 mb-1">On Handover</label>
+                                                <input type="number" value="${state.onHandoverPercent}" data-key="onHandoverPercent"
+                                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-green-500">
+                                                <p class="text-xs text-green-400">${formatUSD(calc.onHandoverUSD)}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- PHPP -->
+                                        <div class="border-t border-slate-700 pt-2">
+                                            <label class="flex items-center gap-2 text-xs text-white mb-1 cursor-pointer">
+                                                <input type="checkbox" ${state.hasPHPP ? 'checked' : ''} data-key="hasPHPP"
+                                                    class="w-3 h-3 rounded border-slate-600 bg-slate-700 text-green-500 focus:ring-1 focus:ring-green-500">
+                                                <span class="font-semibold">PHPP</span>
+                                            </label>
+                                            ${state.hasPHPP ? `
+                                            <div class="grid grid-cols-2 gap-2 pl-5">
+                                                <div>
+                                                    <label class="block text-xs text-slate-300 mb-1">Percentage</label>
+                                                    <input type="number" value="${state.phppPercent}" data-key="phppPercent"
+                                                        class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-green-500">
+                                                    <p class="text-xs text-green-400">${formatUSD(calc.phppUSD)}</p>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs text-slate-300 mb-1">Duration (Mo)</label>
+                                                    <input type="number" value="${state.phppMonths}" data-key="phppMonths"
+                                                        class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-green-500">
+                                                    <p class="text-xs text-green-400">${formatUSD(calc.phppMonthlyUSD)}/mo</p>
+                                                </div>
+                                            </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mortgage -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <label class="flex items-center gap-2 text-sm font-bold text-white mb-2 cursor-pointer">
+                                        <input type="checkbox" ${state.hasMortgage ? 'checked' : ''} data-key="hasMortgage"
+                                            class="w-3 h-3 rounded border-slate-600 bg-slate-700 text-purple-500 focus:ring-1 focus:ring-purple-500">
+                                        📈 <span>Mortgage</span>
+                                    </label>
+                                    ${state.hasMortgage ? `
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Rate (% p.a.)</label>
+                                            <input type="number" step="0.01" value="${state.mortgageRate}" data-key="mortgageRate"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-purple-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Term (Yrs)</label>
+                                            <input type="number" value="${state.mortgageYears}" data-key="mortgageYears"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-purple-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Amount (%)</label>
+                                            <input type="number" value="${state.mortgagePercent}" data-key="mortgagePercent"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-purple-500">
+                                            <p class="text-xs text-purple-400">${formatUSD(calc.mortgageAmountUSD)}</p>
+                                        </div>
+                                        <div class="col-span-3 p-2 bg-purple-500/10 border border-purple-500/30 rounded">
+                                            <p class="text-xs text-slate-300">Monthly: <span class="text-purple-400 font-bold">${formatUSD(calc.monthlyMortgageUSD)}</span></p>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                
+                                <!-- Rental Income -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2">Rental Income & Appreciation</h2>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Annual Rent (USD)</label>
+                                            <input type="text" value="${formatNumber(state.annualRentUSD)}" data-key="annualRentUSD"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-yellow-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Annual Rent (AED)</label>
+                                            <input type="text" value="${formatNumber(Math.round(convertToAED(state.annualRentUSD)))}" data-key="annualRentAED"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-yellow-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-300 mb-1">Annual Rent Inc. (%)</label>
+                                            <input type="number" step="0.1" value="${state.annualRentIncrease}" data-key="annualRentIncrease"
+                                                class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-yellow-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Panel - Results -->
+                            <div class="lg:col-span-2 space-y-2">
+                                
+                                <!-- Investment Summary -->
+                                <div class="bg-gradient-to-br from-amber-600 to-orange-600 rounded-lg shadow-lg p-3 text-white">
+                                    <h2 class="text-sm font-bold mb-2 flex items-center gap-1">
+                                        🧮 Investment Summary
+                                    </h2>
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>DP/DLD/Adm.Fee:</span>
+                                            <span class="font-bold">${formatUSD(calc.initialFeesUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>During Const.:</span>
+                                            <span class="font-bold">${formatUSD(calc.duringConstructionUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>On Handover:</span>
+                                            <span class="font-bold">${formatUSD(calc.onHandoverUSD)}</span>
+                                        </div>
+                                        ${state.hasPHPP ? `
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>PHPP:</span>
+                                            <span class="font-bold">${formatUSD(calc.phppUSD)}</span>
+                                        </div>
+                                        ` : ''}
+                                        ${state.hasMortgage ? `
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>Mortgage (${state.holdingPeriodYears}y paid):</span>
+                                            <span class="font-bold text-red-200">-${formatUSD(calc.totalMortgagePaidUSD)}</span>
+                                        </div>
+                                        ` : ''}
+                                        <div class="flex justify-between items-center bg-white/20 p-2 rounded mt-2">
+                                            <span class="font-bold text-xs">Total Cash Invested:</span>
+                                            <span class="font-bold text-base">${formatUSD(calc.actualCashInvestedUSD)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Annual Income Analysis -->
+                                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
+                                    <h2 class="text-sm font-bold text-white mb-2">Annual Income Analysis</h2>
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-300">Gross Rent (${state.occupancyRate}%):</span>
+                                            <span class="font-bold text-green-400">${formatUSD(calc.effectiveAnnualRentUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-300">Service Charges:</span>
+                                            <span class="font-bold text-red-400">-${formatUSD(calc.annualServiceChargeUSD)}</span>
+                                        </div>
+                                        ${state.hasMortgage ? `
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-300">Mortgage Payments:</span>
+                                            <span class="font-bold text-red-400">-${formatUSD(calc.annualMortgagePaymentUSD)}</span>
+                                        </div>
+                                        ` : ''}
+                                        <div class="flex justify-between items-center p-2 rounded mt-1 ${calc.netAnnualIncomeUSD >= 0 ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}">
+                                            <span class="font-bold text-white text-xs">Net Annual Income:</span>
+                                            <span class="font-bold text-sm ${calc.netAnnualIncomeUSD >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                                ${formatUSD(calc.netAnnualIncomeUSD)}
+                                            </span>
+                                        </div>
+                                        <div class="text-center text-xs text-slate-400">Monthly: ${formatUSD(calc.netMonthlyIncomeUSD)}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Rental Yields -->
                                 <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
                                     <h2 class="text-sm font-bold text-white mb-2">Rental Yields</h2>
                                     <div class="grid grid-cols-2 gap-2">
                                         <div class="bg-blue-500/10 border border-blue-500/30 rounded p-2">
-                                            <p class="text-xs text-slate-300">Gross (Annual)</p>
+                                            <p class="text-xs text-slate-300">Gross Yield</p>
                                             <p class="text-lg font-bold text-blue-400">${calc.grossRentalYieldAnnual.toFixed(2)}%</p>
+                                            <p class="text-xs text-slate-400">Annual</p>
+                                        </div>
+                                        <div class="bg-blue-500/10 border border-blue-500/30 rounded p-2">
+                                            <p class="text-xs text-slate-300">Gross Yield</p>
+                                            <p class="text-lg font-bold text-blue-400">${calc.grossRentalYieldMonthly.toFixed(2)}%</p>
+                                            <p class="text-xs text-slate-400">Monthly</p>
                                         </div>
                                         <div class="bg-green-500/10 border border-green-500/30 rounded p-2">
-                                            <p class="text-xs text-slate-300">Net (Annual)</p>
+                                            <p class="text-xs text-slate-300">Net Yield</p>
                                             <p class="text-lg font-bold text-green-400">${calc.netRentalYieldAnnual.toFixed(2)}%</p>
+                                            <p class="text-xs text-slate-400">Annual</p>
+                                        </div>
+                                        <div class="bg-green-500/10 border border-green-500/30 rounded p-2">
+                                            <p class="text-xs text-slate-300">Net Yield</p>
+                                            <p class="text-lg font-bold text-green-400">${calc.netRentalYieldMonthly.toFixed(2)}%</p>
+                                            <p class="text-xs text-slate-400">Monthly</p>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <!-- Capital Appreciation -->
+                                <div class="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg shadow-lg p-3 text-white">
+                                    <h2 class="text-sm font-bold mb-2 flex items-center gap-1">
+                                        📈 Capital Appreciation (${state.holdingPeriodYears} Years)
+                                    </h2>
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>Current Value:</span>
+                                            <span class="font-bold">${formatUSD(state.purchasePriceUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>Future Value:</span>
+                                            <span class="font-bold">${formatUSD(calc.futureValueUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center bg-white/20 p-2 rounded">
+                                            <span class="font-bold text-xs">Capital Gain:</span>
+                                            <span class="font-bold text-base">${formatUSD(calc.capitalGainUSD)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Total ROI -->
+                                <div class="bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg shadow-lg p-3 text-white">
+                                    <h2 class="text-sm font-bold mb-2 flex items-center gap-1">
+                                        🎯 Return on Investment
+                                    </h2>
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>Capital Gain:</span>
+                                            <span class="font-bold">${formatUSD(calc.capitalGainUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>Total Rental Income:</span>
+                                            <span class="font-bold">${formatUSD(calc.totalRentalIncomeUSD)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pb-1 border-b border-white/20">
+                                            <span>Total Return:</span>
+                                            <span class="font-bold">${formatUSD(calc.totalReturnUSD)}</span>
+                                        </div>
+                                        <div class="bg-white/20 p-3 rounded">
+                                            <div class="text-center">
+                                                <p class="text-xs mb-1">Total ROI (${state.holdingPeriodYears} Years)</p>
+                                                <p class="text-3xl font-bold">${calc.totalROI.toFixed(1)}%</p>
+                                            </div>
+                                        </div>
+                                        ${state.hasMortgage ? `
+                                        <div class="mt-2 p-2 bg-purple-800/40 rounded border border-purple-400/30">
+                                            <p class="text-xs text-purple-100">
+                                                <strong>Mortgage Impact:</strong> Payback period ≈ ${calc.paybackPeriodYears.toFixed(1)} years
+                                            </p>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                
+                                <!-- Disclaimers -->
+                                <div class="bg-amber-900/20 border-l-4 border-amber-500 rounded p-2">
+                                    <h3 class="font-bold text-amber-400 text-xs mb-1 flex items-center gap-1">
+                                        <span>⚠️</span> Disclaimers
+                                    </h3>
+                                    <ul class="text-xs text-slate-300 space-y-0.5">
+                                        <li>• Projections based on assumptions</li>
+                                        <li>• Market conditions may vary</li>
+                                        <li>• Consult financial advisors</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -189,37 +530,36 @@
             `;
             
             // Add event listeners
-            document.querySelectorAll('input').forEach(input => {
+            document.querySelectorAll('input[data-key], select[data-key]').forEach(input => {
                 input.addEventListener('input', (e) => {
                     const key = e.target.dataset.key;
-                    state[key] = e.target.type === 'checkbox' ? e.target.checked : Number(e.target.value.replace(/,/g, ''));
-                    render();
+                    if (e.target.type === 'checkbox') {
+                        updateValue(key, e.target.checked);
+                    } else if (key === 'purchasePriceAED') {
+                        state.purchasePriceUSD = convertToUSD(Number(e.target.value.replace(/,/g, '')));
+                        render();
+                    } else if (key === 'adminFeeUSD') {
+                        state.adminFeeAED = convertToAED(Number(e.target.value.replace(/,/g, '')));
+                        render();
+                    } else if (key === 'annualRentAED') {
+                        state.annualRentUSD = convertToUSD(Number(e.target.value.replace(/,/g, '')));
+                        render();
+                    } else {
+                        updateValue(key, e.target.value);
+                    }
+                });
+                
+                input.addEventListener('change', (e) => {
+                    const key = e.target.dataset.key;
+                    if (key === 'completionQuarter') {
+                        state.completionQuarter = e.target.value;
+                        render();
+                    }
                 });
             });
         }
         
-        function renderInputSection(title, inputs) {
-            return `
-                <div class="bg-slate-800 rounded-lg shadow-lg p-3 border border-slate-700">
-                    <h2 class="text-sm font-bold text-white mb-2">${title}</h2>
-                    <div class="grid grid-cols-3 gap-2">
-                        ${inputs.map(input => `
-                            <div>
-                                <label class="block text-xs text-slate-300 mb-1">${input.label}</label>
-                                <input 
-                                    type="${input.type}" 
-                                    value="${input.value}" 
-                                    data-key="${input.key}"
-                                    ${input.step ? `step="${input.step}"` : ''}
-                                    class="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-white focus:ring-1 focus:ring-amber-500"
-                                />
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
+        // Initial render
         render();
     </script>
 </body>
