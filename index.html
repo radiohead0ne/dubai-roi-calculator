@@ -531,32 +531,34 @@
             
             // Add event listeners
             document.querySelectorAll('input[data-key], select[data-key]').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const key = e.target.dataset.key;
-                    if (e.target.type === 'checkbox') {
-                        updateValue(key, e.target.checked);
-                    } else if (key === 'purchasePriceAED') {
-                        state.purchasePriceUSD = convertToUSD(Number(e.target.value.replace(/,/g, '')));
-                        render();
-                    } else if (key === 'adminFeeUSD') {
-                        state.adminFeeAED = convertToAED(Number(e.target.value.replace(/,/g, '')));
-                        render();
-                    } else if (key === 'annualRentAED') {
-                        state.annualRentUSD = convertToUSD(Number(e.target.value.replace(/,/g, '')));
-                        render();
-                    } else {
-                        updateValue(key, e.target.value);
-                    }
-                });
-                
-                input.addEventListener('change', (e) => {
-                    const key = e.target.dataset.key;
-                    if (key === 'completionQuarter') {
-                        state.completionQuarter = e.target.value;
-                        render();
-                    }
-                });
-            });
+    input.addEventListener('change', (e) => {
+        const key = e.target.dataset.key;
+
+        if (e.target.type === 'checkbox') {
+            updateValue(key, e.target.checked);
+        } else if (key === 'purchasePriceAED') {
+            state.purchasePriceUSD = convertToUSD(
+                Number(e.target.value.replace(/,/g, ''))
+            );
+            render();
+        } else if (key === 'adminFeeUSD') {
+            state.adminFeeAED = convertToAED(
+                Number(e.target.value.replace(/,/g, ''))
+            );
+            render();
+        } else if (key === 'annualRentAED') {
+            state.annualRentUSD = convertToUSD(
+                Number(e.target.value.replace(/,/g, ''))
+            );
+            render();
+        } else if (key === 'completionQuarter') {
+            state.completionQuarter = e.target.value;
+            render();
+        } else {
+            updateValue(key, e.target.value);
+        }
+    });
+});
         }
         
         // Initial render
